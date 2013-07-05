@@ -1,0 +1,19 @@
+﻿{
+    "content_scripts": [ {
+        "all_frames": true,
+        "exclude_globs": [  ],
+        "exclude_matches": [  ],
+        "include_globs": [  ],
+        "js": ["171764.user.js"],
+	"matches": [ "http://weibo.com/*" ],
+        "run_at": "document_end"
+    } ],
+
+    "description": "微博Plus 改善你的微博体验",
+    "name": "微博Plus for Chrome",
+    "version": "0.0.1",
+    "manifest_version": 2,
+
+    "homepage_url": "http://www.labmem.us",
+    "permissions": [ "http://weibo.com/", "http://weibo.com/*", "notifications", "webRequest","webRequestBlocking"]
+}
