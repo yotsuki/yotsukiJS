@@ -314,21 +314,29 @@ function canvasCtrl() {
 	canvas.height	= 360;//ScreenHeightOrg*screenScale;
     }
     else{
-    screenScale	= screen.width/ScreenWidthOrg;
-    canvas.height	= ScreenHeightOrg*screenScale;
-    canvas.width	= screen.width;
+    var _xbiass = 0;
+    if(screen.width > screen.height)
+    {
+        screenScale	= screen.height/ScreenHeightOrg;
+        canvas.width	= ScreenWidthOrg*screenScale;
+        canvas.height	= screen.height;
+        _xbiass = (screen.width - canvas.width)/2;
+    }
+    else
+    {
+        screenScale	= screen.width/ScreenWidthOrg;
+        canvas.height	= ScreenHeightOrg*screenScale;
+        canvas.width	= screen.width;
+        _xbiass = (screen.height - canvas.width)/8;
+    }
+        var dpi = window.devicePixelRatio;
+        if(dpi >= 2 && androidtype > 2){
+            _xbiass /= dpi;
+            screenScale	/= dpi;
+        }
+        document.getElementById("canvas0").style.left = _xbiass +"px";
+        delete _xbiass;
 
-	var _xbiass = (canvas.width - ScreenWidthOrg)/2;
-	canvas.width	= screen.width;
-
-	var dpi = window.devicePixelRatio;
-	if(dpi >= 2 && androidtype > 2){
-	    _xbiass /= dpi;
-	    screenScale	/= dpi;
-	}
-
-	document.getElementById("canvas0").style.left = _xbiass/2 +"px";
-	delete _xbiass;
     }
 //    console.log("ssssssssssss"+canvas.width);
 //    console.log("sssssssssssss"+canvas.height);
