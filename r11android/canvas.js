@@ -314,10 +314,11 @@ function canvasCtrl() {
 	canvas.height	= 360;//ScreenHeightOrg*screenScale;
     }
     else{
-	screenScale	= screen.height/ScreenHeightOrg;
-	canvas.width	= ScreenWidthOrg*screenScale;
-	canvas.height	= screen.height;
-	var _xbiass = (screen.width-canvas.width)/2;
+    screenScale	= screen.width/ScreenWidthOrg;
+    canvas.height	= ScreenHeightOrg*screenScale;
+    canvas.width	= screen.width;
+
+	var _xbiass = (canvas.width - ScreenWidthOrg)/2;
 	canvas.width	= screen.width;
 
 	var dpi = window.devicePixelRatio;
@@ -326,7 +327,7 @@ function canvasCtrl() {
 	    screenScale	/= dpi;
 	}
 
-	document.getElementById("canvas0").style.left = _xbiass+"px";
+	document.getElementById("canvas0").style.left = _xbiass/2 +"px";
 	delete _xbiass;
     }
 //    console.log("ssssssssssss"+canvas.width);
@@ -1039,20 +1040,7 @@ function TitleCtrl(){
 //	    MenuButton[6].alpha = 1;
 	    MenuButton[7].alpha = 1;
 	    MenuButton[8].alpha = 1;
-//	    LocalMode	= 3;
-	    if(RegData["SR_TITLE"] == 0){
-		if(devicetype == 1){
-		    _dialog.set("会員登録/ログイン","無料会員登録/ログインを押してください。\n登録すると、新着情報ページを確認することができます。\n無料会員登録/ログインをしなくとも遊ぶことはできます。\n\n※無料会員登録/ログインには端末情報を送信いたしますが、お客様の会員認証のみに使用いたします。","会員登録/ログイン","閉じる");
-		}
-		else{
-		    _dialog.set("会員登録/ログイン","無料会員登録/ログインを押してください。\n登録すると、お得なポイントが貯まり、ここでしか手に入らないアプリがＧＥＴできます。\n会員登録/ログインをしなくても遊ぶことはできます。\n\n※会員登録/ログインには端末情報を送信いたしますが、お客様の会員認証にのみ使用いたします。","会員登録/ログイン","閉じる");
-		}
-		LocalMode	= 11;
-	    }
-	    else{
-		LocalMode	= 12;
-//		goLocalMode3();	// デバグでhttpを通らないように・・・
-	    }
+	    LocalMode	= 3;
 	}
 	if(RegData["SR_TITLE"] == 0 && MenuButton[6].alpha > 0.6){
 	    MenuButton[6].alpha	= 0.6;
@@ -1259,36 +1247,15 @@ function TitleCtrl(){
 	    LocalMode	= 12;
 	}
 	else if(_dialog.dialogNo()){	// noなら戻る
-	    goLocalMode3();//LocalMode	= 3;
+	    //goLocalMode3();//LocalMode	= 3;
 	}
 	break;
     case	12:	// 会員登録
-	if(httpComplete()){
-	    switch(ResultData["status_code"]){
-	    case	0:
-		goLocalMode3();//LocalMode	= 3;
 		RegData["SR_TITLE"] = 1;
 		saveSystem();
 		MenuButton[6].alpha	= 1;
-		if(ResultData["new_info_flg"] == 1){
-		    NewFlag	= true;
-		}
-		else{
-		    NewFlag	= false;
-		}
-		PointData	= parseInt(ResultData["points"]);
-		break;
-	    case	1:
-	    default:
-		_dialog.set("接続失敗","接続に失敗しました。再接続しますか？","はい","いいえ");
-		LocalMode	= 11;
-		break;
-	    }
-	}
-	else{
-	    _dialog.set("接続失敗","接続に失敗しました。再接続しますか？","はい","いいえ");
-	    LocalMode	= 11;
-	}
+		NewFlag	= true;
+		PointData	= 106;
 	break;
     case	13:
 	if(http2str("http://game.cyberfrontonline.com/user/read_info?user_id="+MacAddress)){
