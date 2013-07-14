@@ -171,11 +171,11 @@ pPlugin.prototype.ChkVoice = function() {
                        }
                        else{
 			   //                       console.log(".............xxxx"+r);
-			   VoiceFlag        = false;
+			   VoiceFlag        = true;
                        }
                    },
                    function(e){
-                       VoiceFlag        = false;
+                       VoiceFlag        = true;
                    }
                   );
 }
