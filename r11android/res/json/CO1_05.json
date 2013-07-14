@@ -1,0 +1,4 @@
+﻿{
+"START":"WIN_COL:1;DATE_SET:11,1,11,2;FADE_OUT:1,FADE_BLACK,FADE_SHADE_ZOOM;BG_DSP:EBG06H,BG_NOFADE;IF_ZERO:LR_END_SATORU_EP,CO105_00;SE_STA:SE10_04L;",
+"CO105_00":"EFF_BLINK1_STA0:EFF_NORMAL,EFF_NOTIME,4,0,0,7,70;FADE_IN:30;TITLE_SET:TITLE_CO1_05;TITLE_DSP:;ADX_STA:ADX30;MES:夢を見ていた。%K%P;MES:時間の感覚を失った私にとって、その夢は永遠のようでもあり刹那のようでもあった。%K%P;MES:光はなかった。%K%P;MES:何も見えない。%K%P;MES:規則的に繰り返される鼓動の音だけが心地良く耳に届いていた。%K%P;MES:まるで羊水を漂う胎児のように……。%K%P;MES:安らかな温もりに包まれていた……。%K%P;MES:何もかもを許されたような気がした。%K%P;MES:不安や恐怖は羊水の中へと溶け出し跡形もなく消え去ってしまった。%K%P;MES:私は流れに身を任せ、温もりに酔い痴れ、恍惚感に我を忘れた。%K%P;MES:ここでは私だけが唯一絶対の存在であり全能の存在であると思った。%K%P;MES:私は世界の中心にいた。%K%P;MES:もう何も考えたくない。%K%P;MES:このままずっとここにいたかった。%K%P;MES:たとえ夢でもかまわない。%K%P;MES:忌まわしい現実よりも穏やかな夢幻の方がましだ。%K%P;MES:けれど夢は夢……。%K%P;MES:いつかは目覚めなければならない。%K%P;MES:その瞬間は何の前触れもなく暴力的に訪れた。%K%P;WIN_OFF:;SE_STP:SE_NOFADE;ADX_STP:ADX_NOFADE;FADE_OUT:30,FADE_BLACK,FADE_SHADE_ZOOM;EFF_STP0:EFF_SKIP;BG_DSP:BG_WHITE,BG_NOFADE;SE_STA:SE10_03,,45;FADE_IN:60;EXT_GOTO:CO1_06;"
+}

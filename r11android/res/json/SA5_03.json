@@ -1,0 +1,3 @@
+﻿{
+"START":"WIN_COL:2;DATE_SET:12,1,15,0;WIN_OFF:;FADE_OUT:60,FADE_WHITE,FADE_SHADE_ZOOM;BG_DSP:BG_WHITE,BG_NOFADE;FADE_IN:1;ADX_STP:;FADE_OUT:60,FADE_BLACK;BG_DSP:EBG07A,BG_NOFADE;SE_STA:SE10_04L;EFF_BLINK1_STA0:EFF_NORMAL,EFF_NOTIME,4,0,0,7,70;FADE_IN:60;TITLE_SET:TITLE_SA5_03;TITLE_DSP:;MES:密度の濃い海流が、全身を舐めるように、まとわりつくように、通り過ぎていく。%K%P;MES:コアセルベートの充満した海に抱かれているような気がした。%K%P;MES:いつか見た夢……。%K%P;MES:原始の海……。%K%P;MES:どこまでが自分で、どこからが自分ではないのか、判断がつかない。%K%P;MES:この広大な海のすべてが自分であるような気もしたし、ここには自分の実体なんてものは一切存在しないような気もした。%K%P;MES:あたりを覆い尽くしているのは、まばゆいばかりの赤い光、律動の音、溶ろけるような甘い匂い……。%K%P;MES:オレは心地良い温もりの中に溺れていた。%K%P;EXT_GOTO:SA5_04;"
+}
