@@ -3,8 +3,8 @@
 // @namespace		http://weibo.com/yotsuki
 // @license			MIT License
 // @description		WPlus+（weibo.com）非官方功能增强脚本
-// @features		可直接从剪贴板粘贴图片,大图转为原图模式
-// @version			0.1.2
+// @features		用户主页增加“狂点赞”按钮,可直接从剪贴板粘贴图片,大图转为原图模式
+// @version			0.2.0
 // @revision		0
 // @author			@yotsuki
 // @grant			GM_getValue
@@ -29,7 +29,7 @@ $(document).ready(function(){
 
 
 function WBPlus(){
-	var version = '0.1.2';
+	var version = '0.2.0';
 	var updateurl ='http://labmem.us/wbplus/update.json?r='+Math.random();
     var hasUpdate =false;
     var update_data = null;
@@ -39,7 +39,8 @@ function WBPlus(){
 	var __this = this;
     this.sina_config ={
         BIG_IMAGE_MODE : 1,
-        ALWALY_CHECK_UPDATE : 1
+        ALWALY_CHECK_UPDATE : 1,
+        PROFILE_LIKE:1
     };
 
 	function checkUpdate(){
@@ -102,6 +103,15 @@ function WBPlus(){
 		}
         var json = eval('(' + str + ')');
         return json;
+    }
+    function paraToJson(str){
+        if(str == null){
+            return {};
+        }
+        str = str.replace(/&/g, "',").replace(/=/g, ":'");
+        //version:mini,qid:heart,mid:3533633975336837,like_src:1
+        str +="'";
+        return  strToJson('{'+str+'}');
     }
 	
 	this.initPaste = function(){
@@ -203,8 +213,69 @@ function WBPlus(){
                     update_data = null;
                     gn_tips.remove('[wbp-action="update"]');
                     break;
+                case "like_all":
+                    likeall();
+                    break;
             }
         });
+    }
+
+    function profile_like()
+    {
+        if(__this.sina_config.ALWALY_CHECK_UPDATE == 1)
+        {
+            var btns = $('[node-type="do_btns"]');
+            btns.prepend('<a href="javascript:void(0);" wbp-action="like_all" class="letter" title="由于新浪接口限制，一次最多点10条">狂点赞</a><span class="W_vline S_line1_c">|</span>');
+        }
+    }
+
+    function likeall(){
+        var like_btns = $('[action-type="feed_list_like"]');
+        for(var i =0; i< like_btns.length;i++){
+            var title =  like_btns[i].getAttribute("title");
+            if(title != "赞"){
+                continue;
+            }
+            if(like_btns[i].parentNode){
+                 var mid = like_btns[i].parentNode.getAttribute("mid");
+                 if(mid){
+                    continue;
+                 }else{
+                     var url ="http://weibo.com/aj/like/add?_wv=5&__rnd="+Math.random();
+                     var data_str = like_btns[i].getAttribute("action-data");
+                     var postData=  paraToJson(data_str);
+                     postData.like_src = 0;
+                     $.post(url,postData,function(data){
+                         if(data.code =="100000"){
+                             if(data.data.is_del == 0){
+                                 var midreg = /mid=(\d+)/ig;
+                                 var wbmid = midreg.exec(data.data.html)[0].match(/\d+/)[0];
+
+                                 var div = $('div[mid="'+wbmid+'"]');
+                                 var likes = div.find('[action-type="feed_list_like"]');
+                                 for(var j=0;j<likes.length;j++){
+                                     if(likes[j].parentNode){
+                                         var likemid = likes[j].parentNode.getAttribute("mid");
+                                         if(likemid){
+                                             continue;
+                                         }
+                                         else{
+                                             var em = likes[j].childNodes[0];
+                                             likes[j].setAttribute('title','取消赞');
+                                             em.className = em.className.replace(" icon_praised_b","");
+                                             em.className +=" icon_praised_bc";
+                                             if(likes[j].innerText ==""){
+                                                 likes[j].innerText ="(1)";
+                                             }
+                                         }
+                                     }
+                                 }
+                             }
+                         }
+                     });
+                 }
+            }
+        }
     }
 
 	function init(){
@@ -214,6 +285,10 @@ function WBPlus(){
         var text = $('title').next().text();
         eval(text);
         sina_config= $CONFIG;
+
+        if($('body.B_profile').length > 0){  //个人主页
+            profile_like();
+        }
 	};
 	init();
 }
